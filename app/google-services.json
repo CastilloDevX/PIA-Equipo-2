@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "177734694670",
+    "project_id": "pia-equipo2",
+    "storage_bucket": "pia-equipo2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:177734694670:android:f673c80bffd3e65e0b495f",
+        "android_client_info": {
+          "package_name": "com.pia.piaequipo2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAx0z7HWvKZcqK-Y7GWkz0lKoaRKKMUwlc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
