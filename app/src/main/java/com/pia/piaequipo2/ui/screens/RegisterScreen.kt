@@ -10,11 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.pia.piaequipo2.R
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -33,28 +35,28 @@ fun RegisterScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Crear cuenta", style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.register_title), style = MaterialTheme.typography.headlineMedium)
 
         Spacer(Modifier.height(16.dp))
 
         TextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nombre") },
+            label = { Text(stringResource(R.string.name)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         TextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Correo electrónico") },
+            label = { Text(stringResource(R.string.email)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         TextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            label = { Text(stringResource(R.string.password)) },
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { showPassword = !showPassword }) {
@@ -70,7 +72,7 @@ fun RegisterScreen(navController: NavController) {
         TextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Confirmar contraseña") },
+            label = { Text(stringResource(R.string.confirm_password)) },
             visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
@@ -88,12 +90,12 @@ fun RegisterScreen(navController: NavController) {
         Button(
             onClick = {
                 if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
-                    Toast.makeText(context, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.please_complete_all), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
                 if (password != confirmPassword) {
-                    Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_password_mismatch), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
@@ -101,7 +103,7 @@ fun RegisterScreen(navController: NavController) {
                     .createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener {
                         it.user?.sendEmailVerification()
-                        Toast.makeText(context, "Cuenta creada. Verifica tu correo", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.account_created_verify_email), Toast.LENGTH_LONG).show()
 
                         val uid = it.user!!.uid
                         val userData = mapOf("name" to name, "email" to email)
@@ -110,16 +112,16 @@ fun RegisterScreen(navController: NavController) {
                         navController.navigate("verify")
                     }
                     .addOnFailureListener {
-                        Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.error_with_message, it.message), Toast.LENGTH_SHORT).show()
                     }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Registrarse")
+            Text(stringResource(R.string.register))
         }
 
         TextButton(onClick = { navController.popBackStack() }) {
-            Text("Volver")
+            Text(stringResource(R.string.back))
         }
     }
 }

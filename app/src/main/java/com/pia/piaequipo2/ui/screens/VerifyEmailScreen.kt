@@ -1,19 +1,22 @@
 package com.pia.piaequipo2.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.pia.piaequipo2.R
+import android.widget.Toast
 
 @Composable
 fun VerifyEmailScreen(navController: NavController) {
     val context = LocalContext.current
+    val user = FirebaseAuth.getInstance().currentUser
 
     Column(
         modifier = Modifier
@@ -22,34 +25,37 @@ fun VerifyEmailScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Verifica tu correo", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = stringResource(R.string.verify_email_title),
+            style = MaterialTheme.typography.headlineMedium
+        )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Revisa tu bandeja de entrada. Debes verificar antes de continuar.")
+        Text(
+            text = stringResource(R.string.verify_email_instruction),
+            style = MaterialTheme.typography.bodyLarge
+        )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(onClick = {
-            FirebaseAuth.getInstance().currentUser?.reload()?.addOnSuccessListener {
-                if (FirebaseAuth.getInstance().currentUser?.isEmailVerified == true) {
-                    Toast.makeText(context, "Correo verificado", Toast.LENGTH_SHORT).show()
-                    navController.navigate("home")
-                } else {
-                    Toast.makeText(context, "Aún no has verificado tu correo", Toast.LENGTH_SHORT).show()
-                }
+            user?.sendEmailVerification()?.addOnSuccessListener {
+                Toast.makeText(context, context.getString(R.string.verify_email_sent), Toast.LENGTH_SHORT).show()
+            }?.addOnFailureListener {
+                Toast.makeText(context, context.getString(R.string.error_with_message, it.message), Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text("Ya verifiqué")
+            Text(text = stringResource(R.string.resend_email))
         }
 
-        TextButton(onClick = {
-            FirebaseAuth.getInstance().signOut()
-            navController.navigate("login") {
-                popUpTo("verify") { inclusive = true }
-            }
-        }) {
-            Text("Cerrar sesión")
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { navController.navigate("login") },
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Text(text = stringResource(R.string.back_to_login))
         }
     }
 }
