@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PIA Equipo 2</string>
+
+    <string name="password">Contraseña</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="language">Lenguaje:</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="lang_changed">Idioma cambiado. Reinicia la aplicación.</string>
+    <string name="spanish">Español</string>
+    <string name="english">Inglés</string>
+
+    <!-- Inicio -->
+    <string name="greeting">Hola, %1$s</string>
+
+    <!-- Inicio de sesión -->
+    <string name="email">Correo electrónico</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="no_account_register">¿No tienes una cuenta? Regístrate</string>
+    <string name="error_empty_fields">Por favor ingresa correo y contraseña</string>
+    <string name="error_email_not_found">Este correo no está registrado</string>
+    <string name="login_success">Inicio de sesión exitoso</string>
+    <string name="error_verify_email">Verifica tu correo antes de iniciar sesión</string>
+    <string name="error_wrong_password">Contraseña incorrecta</string>
+
+    <!-- Registro -->
+    <string name="register_title">Crear cuenta</string>
+    <string name="name">Nombre</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="register">Registrarse</string>
+    <string name="back">Atrás</string>
+
+    <!-- Notificaciones y errores -->
+    <string name="please_complete_all">Por favor completa todos los campos</string>
+    <string name="error_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="account_created_verify_email">Cuenta creada. Por favor verifica tu correo</string>
+    <string name="error_with_message">Error: %1$s</string>
+
+    <!-- Verificar correo -->
+    <string name="verify_email_title">Verifica tu correo</string>
+    <string name="verify_email_instruction">Te hemos enviado un correo de verificación. Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.</string>
+    <string name="resend_email">Reenviar correo</string>
+    <string name="verify_email_sent">Correo de verificación enviado</string>
+    <string name="back_to_login">Volver al inicio de sesión</string>
+    <string name="suspension_accounts">Suspensión de cuentas</string>
+    <string name="add_admin">Agregar administrador</string>
+    <string name="suspend_user">Suspender usuario</string>
+    <string name="suspend">Suspender</string>
+    <string name="suspend_by_time">%1$s suspendido por 30 segundos</string>
+    <string name="assing_admin">Asignar administrador</string>
+    <string name="make_admin">Hacer administrador</string>
+    <string name="user_is_admin">%1$s es ahora administrador</string>
+    <string name="account_suspended_try_on_x_seconds">Cuenta suspendida. Por favor intenta nuevamente en %1$d segundos.</string>
+    <string name="error_verifying_suspension">Error verificando suspensión</string>
+    <string name="your_account_is_suspended">Tu cuenta ha sido suspendida</string>
+    <string name="search_contacts">Buscar contactos</string>
+    <string name="add_contact">Agregar contactos</string>
+    <string name="only_admins">Solo administradores</string>
+    <string name="write_msg">Escribe un mensaje</string>
+    <string name="send">Enviar</string>
+    <string name="error_to_send_msgs">Error al enviar mensaje</string>
+</resources>
