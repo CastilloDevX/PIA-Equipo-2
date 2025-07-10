@@ -1,0 +1,62 @@
+<resources>
+    <string name="app_name">PIA Equipo 2</string>
+
+    <string name="password">Password</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="language">Language:</string>
+    <string name="logout">Log out</string>
+    <string name="lang_changed">Language changed. Restart the app.</string>
+    <string name="spanish">Spanish</string>
+    <string name="english">English</string>
+
+    <!-- Home -->
+    <string name="greeting">Hello, %1$s</string>
+
+    <!-- Login -->
+    <string name="email">Email</string>
+    <string name="login">Log in</string>
+    <string name="no_account_register">Dont have an account? Register</string>
+    <string name="error_empty_fields">Please enter email and password</string>
+    <string name="error_email_not_found">This email is not registered</string>
+    <string name="login_success">Login successful</string>
+    <string name="error_verify_email">Verify your email before logging in</string>
+    <string name="error_wrong_password">Incorrect password</string>
+
+    <!-- Register -->
+    <string name="register_title">Create Account</string>
+    <string name="name">Name</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="register">Register</string>
+    <string name="back">Back</string>
+
+    <!-- Toasts and errors -->
+    <string name="please_complete_all">Please complete all fields</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="account_created_verify_email">Account created. Please verify your email</string>
+    <string name="error_with_message">Error: %1$s</string>
+
+    <!-- VerifyEmail -->
+    <string name="verify_email_title">Verify your email</string>
+    <string name="verify_email_instruction">We have sent you a verification email. Please check your inbox and click the link to activate your account.</string>
+    <string name="resend_email">Resend email</string>
+    <string name="verify_email_sent">Verification email sent</string>
+    <string name="back_to_login">Back to login</string>
+    <string name="suspension_accounts">Suspension accounts</string>
+    <string name="add_admin">Add admin</string>
+    <string name="suspend_user">Suspend user</string>
+    <string name="suspend">Suspend</string>
+    <string name="suspend_by_time">%1$s suspended for 30 seconds</string>
+    <string name="assing_admin">Assign administrator</string>
+    <string name="make_admin">Make administrator</string>
+    <string name="user_is_admin">%1$s is now an administrator</string>
+    <string name="account_suspended_try_on_x_seconds">Account suspended. Please try again in %1$d seconds.</string>
+    <string name="error_verifying_suspension">Error verifying suspension</string>
+    <string name="your_account_is_suspended">Your account has been suspended</string>
+    <string name="search_contacts">Search contacts</string>
+    <string name="add_contact">Add contacts</string>
+    <string name="only_admins">Only administrators</string>
+    <string name="write_msg">Write a message</string>
+    <string name="send">Send</string>
+    <string name="error_to_send_msgs">Error sending message</string>
+</resources>
