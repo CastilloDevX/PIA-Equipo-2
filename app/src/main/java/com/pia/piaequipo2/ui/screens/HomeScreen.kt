@@ -3,7 +3,6 @@ package com.pia.piaequipo2.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -26,8 +26,6 @@ import com.google.firebase.ktx.Firebase
 import com.pia.piaequipo2.R
 import com.pia.piaequipo2.model.ChatPreview
 import com.pia.piaequipo2.model.Contact
-import androidx.compose.ui.text.font.FontStyle
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,9 +51,11 @@ fun HomeScreen(navController: NavController) {
                 val suspendedUntil = snapshot.getValue(Long::class.java) ?: 0L
                 if (System.currentTimeMillis() < suspendedUntil) {
                     val remaining = ((suspendedUntil - System.currentTimeMillis()) / 1000).toInt()
-                    Toast.makeText(context,
+                    Toast.makeText(
+                        context,
                         context.getString(R.string.account_suspended_try_on_x_seconds, remaining),
-                        Toast.LENGTH_LONG).show()
+                        Toast.LENGTH_LONG
+                    ).show()
                     FirebaseAuth.getInstance().signOut()
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
@@ -66,41 +66,40 @@ fun HomeScreen(navController: NavController) {
             override fun onCancelled(error: DatabaseError) {}
         })
 
-        // Obtener conversaciones desde "messages"
-        val messagesRef = Firebase.database.reference.child("messages").child(uid)
-        messagesRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val previews = mutableListOf<ChatPreview>()
-                val totalChats = snapshot.childrenCount
-                var processedChats = 0
+        // Obtener contactos
+        val contactsRef = Firebase.database.reference.child("contacts").child(uid)
+        contactsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(contactSnap: DataSnapshot) {
+                val contacts = mutableListOf<Contact>()
 
-                snapshot.children.forEach { otherUserChat ->
-                    val contactUid = otherUserChat.key ?: return@forEach
+                contactSnap.children.forEach { child ->
+                    val contact = child.getValue(Contact::class.java)
+                    if (contact != null) contacts.add(contact)
+                }
 
-                    val lastMessageSnap = otherUserChat.children.maxByOrNull {
-                        it.child("timestamp").getValue(Long::class.java) ?: 0L
-                    }
+                // Obtener mensajes
+                val messagesRef = Firebase.database.reference.child("messages").child(uid)
+                messagesRef.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(msgSnap: DataSnapshot) {
+                        val previews = mutableListOf<ChatPreview>()
 
-                    val lastText = lastMessageSnap?.child("text")?.getValue(String::class.java) ?: ""
-                    val seen = lastMessageSnap?.child("seen")?.getValue(Boolean::class.java) ?: true
+                        contacts.forEach { contact ->
+                            val userMessages = msgSnap.child(contact.uid)
+                            val lastMessageSnap = userMessages.children.maxByOrNull {
+                                it.child("timestamp").getValue(Long::class.java) ?: 0L
+                            }
 
-                    // Obtener info del usuario
-                    Firebase.database.reference.child("users").child(contactUid)
-                        .get().addOnSuccessListener { userSnap ->
-                            val name = userSnap.child("name").getValue(String::class.java) ?: "Desconocido"
-                            val email = userSnap.child("email").getValue(String::class.java) ?: ""
-                            val contact = Contact(contactUid, name, email)
+                            val lastText = lastMessageSnap?.child("text")?.getValue(String::class.java) ?: ""
+                            val seen = lastMessageSnap?.child("seen")?.getValue(Boolean::class.java) ?: true
 
                             previews.add(ChatPreview(contact, lastText, seen))
-                            processedChats++
-
-                            if (processedChats == totalChats.toInt()) {
-                                chatPreviews = previews.sortedByDescending { it.lastMessage }
-                            }
-                        }.addOnFailureListener {
-                            processedChats++
                         }
-                }
+
+                        chatPreviews = previews.sortedByDescending { it.lastMessage }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {}
+                })
             }
 
             override fun onCancelled(error: DatabaseError) {}
@@ -137,7 +136,9 @@ fun HomeScreen(navController: NavController) {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text(stringResource(R.string.search_contacts)) },
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
             LazyColumn {
                 items(filteredPreviews) { preview ->
