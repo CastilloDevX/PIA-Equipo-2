@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -22,8 +21,21 @@ fun AddContactScreen(navController: NavController) {
     var selectedUser by remember { mutableStateOf<Triple<String, String, String>?>(null) }
     var showNotFound by remember { mutableStateOf(false) }
 
-    val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val currentUid = currentUser?.uid ?: return
+    val currentUserName = remember { mutableStateOf("") }
+    val currentUserEmail = remember { mutableStateOf("") }
 
+    // Cargar nombre/email del usuario actual
+    LaunchedEffect(currentUid) {
+        val userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUid)
+        userRef.get().addOnSuccessListener { snapshot ->
+            currentUserName.value = snapshot.child("name").getValue(String::class.java) ?: ""
+            currentUserEmail.value = snapshot.child("email").getValue(String::class.java) ?: ""
+        }
+    }
+
+    // Cargar lista de usuarios (excepto yo)
     LaunchedEffect(true) {
         val ref = FirebaseDatabase.getInstance().getReference("users")
         ref.get().addOnSuccessListener { snapshot ->
@@ -92,14 +104,23 @@ fun AddContactScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    val contact = Contact(uid, name, email)
-                    FirebaseDatabase.getInstance()
-                        .getReference("contacts/$currentUid/$uid")
-                        .setValue(contact)
-                        .addOnSuccessListener {
-                            Toast.makeText(context, "Contacto añadido", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack("home", inclusive = false)
-                        }
+                    val db = FirebaseDatabase.getInstance().getReference("contacts")
+
+                    val myContact = Contact(uid = uid, name = name, email = email)
+                    val theirContact = Contact(
+                        uid = currentUid,
+                        name = currentUserName.value,
+                        email = currentUserEmail.value
+                    )
+
+                    val myRef = db.child(currentUid).child(uid)
+                    val theirRef = db.child(uid).child(currentUid)
+
+                    myRef.setValue(myContact)
+                    theirRef.setValue(theirContact)
+
+                    Toast.makeText(context, "Contacto añadido", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack("home", inclusive = false)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

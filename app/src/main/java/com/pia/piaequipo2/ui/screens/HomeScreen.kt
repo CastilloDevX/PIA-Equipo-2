@@ -26,6 +26,7 @@ import com.google.firebase.ktx.Firebase
 import com.pia.piaequipo2.R
 import com.pia.piaequipo2.model.ChatPreview
 import com.pia.piaequipo2.model.Contact
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,14 +39,15 @@ fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(uid) {
-        val userRef = Firebase.database.reference.child("users").child(uid)
+        val database = Firebase.database.reference
+        val userRef = database.child("users").child(uid)
 
-        // Obtener nombre
+        // Obtener el nombre del usuario
         userRef.child("name").get().addOnSuccessListener {
             userName = it.value?.toString() ?: ""
         }
 
-        // Verificar suspensión
+        // Verificación de suspensión
         userRef.child("suspendedUntil").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val suspendedUntil = snapshot.getValue(Long::class.java) ?: 0L
@@ -66,40 +68,58 @@ fun HomeScreen(navController: NavController) {
             override fun onCancelled(error: DatabaseError) {}
         })
 
-        // Obtener contactos
-        val contactsRef = Firebase.database.reference.child("contacts").child(uid)
-        contactsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(contactSnap: DataSnapshot) {
-                val contacts = mutableListOf<Contact>()
+        // Precargar usuarios
+        val allUsersSnapshot = database.child("users").get().await()
+        val allUsers = mutableMapOf<String, Contact>()
+        allUsersSnapshot.children.forEach { userSnap ->
+            val id = userSnap.key ?: return@forEach
+            val name = userSnap.child("name").getValue(String::class.java) ?: "Desconocido"
+            val email = userSnap.child("email").getValue(String::class.java) ?: ""
+            allUsers[id] = Contact(name, email, id)
+        }
 
-                contactSnap.children.forEach { child ->
-                    val contact = child.getValue(Contact::class.java)
-                    if (contact != null) contacts.add(contact)
-                }
+        // Obtener contactos del usuario
+        val contactSnap = database.child("contacts").child(uid).get().await()
+        val contacts = mutableMapOf<String, Contact>()
+        contactSnap.children.forEach { child ->
+            val contact = child.getValue(Contact::class.java)
+            if (contact != null) contacts[contact.uid] = contact
+        }
 
-                // Obtener mensajes
-                val messagesRef = Firebase.database.reference.child("messages").child(uid)
-                messagesRef.addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(msgSnap: DataSnapshot) {
-                        val previews = mutableListOf<ChatPreview>()
+        // Escuchar mensajes
+        database.child("messages").child(uid).addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(msgSnap: DataSnapshot) {
+                val previews = mutableListOf<ChatPreview>()
+                val allContactUids = contacts.keys
 
-                        contacts.forEach { contact ->
-                            val userMessages = msgSnap.child(contact.uid)
-                            val lastMessageSnap = userMessages.children.maxByOrNull {
-                                it.child("timestamp").getValue(Long::class.java) ?: 0L
-                            }
-
-                            val lastText = lastMessageSnap?.child("text")?.getValue(String::class.java) ?: ""
-                            val seen = lastMessageSnap?.child("seen")?.getValue(Boolean::class.java) ?: true
-
-                            previews.add(ChatPreview(contact, lastText, seen))
-                        }
-
-                        chatPreviews = previews.sortedByDescending { it.lastMessage }
+                // Chats con mensajes
+                msgSnap.children.forEach { chat ->
+                    val contactUid = chat.key ?: return@forEach
+                    val lastMessageSnap = chat.children.maxByOrNull {
+                        it.child("timestamp").getValue(Long::class.java) ?: 0L
                     }
 
-                    override fun onCancelled(error: DatabaseError) {}
-                })
+                    val lastText = lastMessageSnap?.child("text")?.getValue(String::class.java) ?: ""
+                    val seen = lastMessageSnap?.child("seen")?.getValue(Boolean::class.java) ?: true
+                    val contact = contacts[contactUid] ?: allUsers[contactUid]
+                    if (contact != null) {
+                        previews.add(ChatPreview(contact, lastText, seen))
+                    }
+                }
+
+                // Agregar contactos sin mensajes
+                allContactUids.forEach { contactUid ->
+                    val alreadyInList = previews.any { it.contact.uid == contactUid }
+                    if (!alreadyInList) {
+                        val contact = contacts[contactUid] ?: allUsers[contactUid]
+                        if (contact != null) {
+                            previews.add(ChatPreview(contact, lastMessage = "", seen = true))
+                        }
+                    }
+                }
+
+                // Ordenar por nombre alfabéticamente
+                chatPreviews = previews.sortedBy { it.contact.name }
             }
 
             override fun onCancelled(error: DatabaseError) {}

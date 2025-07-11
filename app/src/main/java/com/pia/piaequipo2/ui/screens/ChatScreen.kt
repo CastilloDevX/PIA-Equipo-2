@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,39 +32,44 @@ fun ChatScreen(navController: NavController, contactUid: String) {
     var messageText by remember { mutableStateOf("") }
     var contactName by remember { mutableStateOf("Chat") }
 
-    val messagesRef = FirebaseDatabase.getInstance().getReference("messages")
-        .child(currentUserUid).child(contactUid)
-
     // Obtener nombre del contacto
     LaunchedEffect(contactUid) {
-        val contactRef = FirebaseDatabase.getInstance().getReference("users")
-            .child(contactUid)
+        if (contactUid.isBlank()) {
+            Toast.makeText(context, "UID del contacto vacío", Toast.LENGTH_SHORT).show()
+            return@LaunchedEffect
+        }
+
+        val contactRef = FirebaseDatabase.getInstance().getReference("users").child(contactUid)
         contactRef.get().addOnSuccessListener {
-            contactName = it.child("name").getValue(String::class.java) ?: "Chat"
+            val name = it.child("name").getValue(String::class.java)
+            contactName = name ?: "Chat"
+            if (name == null) {
+                Toast.makeText(context, "Nombre del usuario no encontrado", Toast.LENGTH_SHORT).show()
+            }
         }.addOnFailureListener {
             contactName = "Chat"
+            Toast.makeText(context, "Error al obtener nombre del contacto", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Escuchar mensajes en tiempo real
+    // Escuchar solo los mensajes del nodo del usuario actual
     LaunchedEffect(Unit) {
-        messagesRef.orderByChild("timestamp").addValueEventListener(object : ValueEventListener {
+        val myRef = FirebaseDatabase.getInstance().getReference("messages")
+            .child(currentUserUid).child(contactUid)
+
+        myRef.orderByChild("timestamp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                messageList.clear()
-                for (child in snapshot.children) {
-                    val msg = child.getValue(Message::class.java)
-                    if (msg != null) {
-                        messageList.add(msg)
-                    }
+                val allMessages = mutableListOf<Message>()
+                snapshot.children.forEach {
+                    val msg = it.getValue(Message::class.java)
+                    if (msg != null) allMessages.add(msg)
                 }
+                messageList.clear()
+                messageList.addAll(allMessages.sortedBy { it.timestamp })
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.error_to_send_msgs),
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Error al cargar mensajes", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -75,6 +81,13 @@ fun ChatScreen(navController: NavController, contactUid: String) {
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.Chat, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate("call/$contactUid")
+                    }) {
+                        Icon(Icons.Default.Call, contentDescription = "Llamar")
                     }
                 }
             )
@@ -114,7 +127,6 @@ fun ChatScreen(navController: NavController, contactUid: String) {
                     if (messageText.isNotBlank()) {
                         val timestamp = System.currentTimeMillis()
 
-                        // Mensaje para TI (ya leído)
                         val myMessage = Message(
                             sender = currentUserUid,
                             text = messageText,
@@ -122,7 +134,6 @@ fun ChatScreen(navController: NavController, contactUid: String) {
                             seen = true
                         )
 
-                        // Mensaje para EL OTRO (no leído)
                         val contactMessage = Message(
                             sender = currentUserUid,
                             text = messageText,

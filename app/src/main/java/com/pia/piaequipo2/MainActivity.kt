@@ -72,6 +72,10 @@ class MainActivity : ComponentActivity() {
                                 ) { backEntry ->
                                     ChatScreen(navController, backEntry.arguments!!.getString("contactUid")!!)
                                 }
+                                composable("call/{contactUid}") { backStackEntry ->
+                                    val contactUid = backStackEntry.arguments?.getString("contactUid") ?: ""
+                                    CallScreen(navController, contactUid)
+                                }
                             }
                         }
                     }
